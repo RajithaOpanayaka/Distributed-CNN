@@ -1,5 +1,34 @@
 import numpy as np
 
+
+def softmax(Z):
+    """
+    Softmax activation function, vectorized version (array Z).
+    Args:
+        Z (ndarray): numpy array of any shape, output of the linear layer
+    """
+    Z_exp = np.exp(Z)
+    A = Z_exp / np.sum(Z_exp, axis=1)
+
+    assert (A.shape == Z.shape)
+
+    return A
+
+def relu(Z):
+    """
+    ReLU activation function, vectorized version (array Z).
+    Args:
+        Z (ndarray): numpy array of any shape, output of the linear layer
+    Returns:
+        A (ndarray): post-activation output of relu(Z), same shape as Z
+    """
+    A = np.maximum(0, Z)
+
+    assert (A.shape == Z.shape)
+
+    return A
+
+
 def zero_pad(X, pad):
     """
     Pad with zeros all images of the dataset X. The padding is applied to the height and width of an image,
@@ -185,3 +214,20 @@ hparameters = {"stride" : 1, "f": 3}
 A= pool_forward(A_prev, hparameters)
 print("mode = max")
 print("A.shape = " + str(A.shape))
+
+
+#softmax test
+
+x = np.array([
+    [9, 2, 5, 0, 0],
+    [7, 5, 0, 0 ,0]])
+print("softmax(x) = " + str(softmax(x)))
+
+"""
+expected output
+[
+ [  9.80897665e-01   8.94462891e-04   1.79657674e-02   1.21052389e-04 1.21052389e-04]
+ [  8.78679856e-01   1.18916387e-01   8.01252314e-04   8.01252314e-04 8.01252314e-04]
+]
+
+"""
