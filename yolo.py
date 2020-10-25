@@ -8,7 +8,7 @@ def softmax(Z):
         Z (ndarray): numpy array of any shape, output of the linear layer
     """
     Z_exp = np.exp(Z)
-    A = Z_exp / np.sum(Z_exp, axis=1)
+    A = Z_exp / np.sum(Z_exp, axis=1,keepdims=True)
 
     assert (A.shape == Z.shape)
 
