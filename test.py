@@ -1,5 +1,7 @@
 #YOLO conv net
 import time
+from yolo import conv_forward,pool_forward
+from weights import image,W1,b1,W2,b2,W3,b3,hparameters1,hparameters2,hparameters3,hparameters4,hparameters5
 tic = time.process_time()
 out1=conv_forward(image, W1, b1, hparameters1) #3x3 s-1 pad-1 filters 16 activation-leaky
 out2=pool_forward(out1, hparameters2, mode = "max") #2x2 s-2
