@@ -205,7 +205,7 @@ def pool_forward(A_prev, hparameters, mode = "max"):
     return A#, cache
 
 
-
+"""
 #test
 np.random.seed(1)
 A_prev = np.random.randn(2, 5, 5, 3)
@@ -222,6 +222,7 @@ x = np.array([
     [9, 2, 5, 0, 0],
     [7, 5, 0, 0 ,0]])
 print("softmax(x) = " + str(softmax(x)))
+"""
 
 """
 expected output

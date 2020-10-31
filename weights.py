@@ -1,3 +1,4 @@
+import numpy as np
 np.random.seed(1)
 image=np.random.randn(1, 256, 256, 3) #h256X256 image
 W1=np.random.randn(3, 3, 3, 32)
