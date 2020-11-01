@@ -1,3 +1,4 @@
+import pickle
 import socket
 
 s=socket.socket()
@@ -10,8 +11,9 @@ s.listen(1) #number of connections 1
 
 while True:
 	c,addr =s.accept()
-	data=c.recv(1024)
-	print('Connect with',addr,data)
+	data=c.recv(4096)
+	data_variable=pickle.loads(data)
+	print('Connect with',addr,data_variable.data.shape)
 	c.send("Welcome to server")
 
 	c.close()
