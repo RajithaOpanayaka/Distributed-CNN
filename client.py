@@ -1,12 +1,43 @@
 import pickle
+import json
 import socket
 import numpy as np
-np.random.seed(1)
-image=np.random.randn(1, 256, 256, 3) #h256X256 image
-conv_dict = { 'data':image}
-c = socket.socket()
+import struct
 
-c.connect(('localhost',6001)) #ip address and port
-data_string=pickle.dumps(conv_dict)
-c.send(data_string)
-print(c.recv(1024).decode())
+payload_size = struct.calcsize("L")  ### CHANGED
+data = b''
+def send(c,data):
+	data_string=pickle.dumps(data)
+	message_size = struct.pack("L", len(data_string))
+	c.sendall(message_size+data_string)	
+def receive_array(data,payload_size,conn):
+        while len(data) < payload_size:
+            data += conn.recv(4096)
+
+        packed_msg_size = data[:payload_size]
+        data = data[payload_size:]
+        msg_size = struct.unpack("L", packed_msg_size)[0]
+
+        # Retrieve all data based on message size
+        while len(data) < msg_size:
+            data += conn.recv(4096)
+
+        frame_data = data[:msg_size]
+        data = data[msg_size:]
+
+        # Extract frame
+        frame = pickle.loads(frame_data)
+        return frame
+
+
+np.random.seed(1)
+image=np.random.randn(1,256,256, 3) #h256X256 image
+conv_dict = { "data":image}
+c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+c.connect(('localhost',9999)) #ip address and port
+#send data to server
+send(c,conv_dict)
+#receive data from server
+out=receive_array(data,payload_size,c)
+print(out["data"].shape)
