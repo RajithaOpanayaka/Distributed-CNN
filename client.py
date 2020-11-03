@@ -3,7 +3,10 @@ import json
 import socket
 import numpy as np
 import struct
+import time
 from threading import *
+from yolo import conv_forward,pool_forward
+from weights import image,W1,b1,W2,b2,W3,b3,hparameters1,hparameters2,hparameters3,hparameters4,hparameters5
 
 class client(Thread):
 	payload_size = struct.calcsize("L")  ### CHANGED
@@ -54,10 +57,16 @@ class client(Thread):
 #print(out["data"].shape)
 np.random.seed(1)
 image=np.random.randn(1,256,256, 3) #h256X256 image
-conv_dict = { "data":image}
+a=round(W1.shape[3]/2)
+conv_dict = { "data":image,"hpara":hparameters1,"pos":a}
+tic = time.process_time()
 c=client(conv_dict)
 c.start()
-print("Byee")
+#client process conv portion
+out=conv_forward(image, W1[:,:,:,:a], b1[:,:,:,:a], hparameters1)
 c.join()
 print(c.value()["data"].shape)
-print("Byee")
+out1=np.concatenate((out,c.value()["data"]), axis=3)
+toc = time.process_time()
+print ("Computation time = " + str(1000*(toc - tic)) + "ms")
+print("Out1 shape",out1.shape)

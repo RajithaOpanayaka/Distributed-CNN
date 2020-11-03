@@ -3,6 +3,9 @@ import socket
 import json
 import numpy as np
 import struct
+from yolo import conv_forward,pool_forward
+from weights import image,W1,b1,W2,b2,W3,b3,hparameters1,hparameters2,hparameters3,hparameters4,hparameters5
+
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 print('Socket Created')
@@ -47,7 +50,9 @@ while True:
     #receive data from client
     data_variable=receive_array(data,payload_size,c)
     print('Connect with',addr,data_variable["data"].shape)
-    send(c,data_variable)
+    imgout=conv_forward(data_variable["data"], W1[:,:,:,data_variable["pos"]:], b1[:,:,:,data_variable["pos"]:],data_variable["hpara"])
+    out={"data":imgout}
+    send(c,out)
     #send data to client
 	#c.send(bytes("Welcome to server",'utf-8'))
     c.close()
