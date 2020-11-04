@@ -1,6 +1,7 @@
 import pickle
 import socket
 import json
+import time
 import numpy as np
 import struct
 from yolo import conv_forward,pool_forward
@@ -48,11 +49,14 @@ def receive_array(data,payload_size,conn):
 while True:
     c,addr =s.accept()
     #receive data from client
+    tic = time.process_time()
     data_variable=receive_array(data,payload_size,c)
     print('Connect with',addr,data_variable["data"].shape)
     imgout=conv_forward(data_variable["data"], W1[:,:,:,data_variable["pos"]:], b1[:,:,:,data_variable["pos"]:],data_variable["hpara"])
     out={"data":imgout}
     send(c,out)
+    toc = time.process_time()
+    print ("Computation time for conv part2 = " + str(1000*(toc - tic)) + "ms")
     #send data to client
 	#c.send(bytes("Welcome to server",'utf-8'))
     c.close()
