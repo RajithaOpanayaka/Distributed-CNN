@@ -5,8 +5,8 @@ import numpy as np
 import struct
 import time
 from threading import *
-from yolo import conv_forward,pool_forward
-from weights import image,W1,b1,W2,b2,W3,b3,hparameters1,hparameters2,hparameters3,hparameters4,hparameters5
+import yolo as y
+import weights as w
 
 class client(Thread):
 	payload_size = struct.calcsize("L")  ### CHANGED
@@ -16,11 +16,11 @@ class client(Thread):
 	def __init__(self,values):
 		super(client, self).__init__()
 		self.valdict=values
-	
+
 	def send(self,c,data):
 		data_string=pickle.dumps(data)
 		message_size = struct.pack("L", len(data_string))
-		c.sendall(message_size+data_string)	
+		c.sendall(message_size+data_string)
 	def receive_array(self,data,payload_size,conn):
 		while len(data) < payload_size:
 			data += conn.recv(4096)
@@ -39,7 +39,7 @@ class client(Thread):
         # Extract frame
 		frame = pickle.loads(frame_data)
 		return frame
-		
+
 	def run(self):
 		c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		c.connect(('localhost',9999)) #ip address and port
@@ -57,14 +57,14 @@ class client(Thread):
 #print(out["data"].shape)
 np.random.seed(1)
 image=np.random.randn(1,256,256, 3) #h256X256 image
-a=round(W1.shape[3]/2)
-conv_dict = { "data":image,"hpara":hparameters1,"pos":a}
+a=round(w.W1.shape[3]/2)
+conv_dict = { "data":image,"hpara":w.hparameters1,"pos":a}
 #tic = time.process_time()
 c=client(conv_dict)
 c.start()
 #client process conv portion
 tic = time.process_time()
-out=conv_forward(image, W1[:,:,:,:a], b1[:,:,:,:a], hparameters1)
+out=y.conv_forward(image, w.W1[:,:,:,:a], w.b1[:,:,:,:a], w.hparameters1)
 toc = time.process_time()
 print ("Computation time conv part1 = " + str(1000*(toc - tic)) + "ms")
 tic = time.process_time()
