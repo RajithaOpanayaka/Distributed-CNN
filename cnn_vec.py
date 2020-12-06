@@ -23,6 +23,17 @@ def im2colStride(X,kernel,s):
     """
     return view_as_windows(X, kernel.shape, step=s)
 
+def vecKernel(kernel):
+  """
+  kernel-- numpy array of shape (n_C, n_C_prev, f, f)
+  """
+  #size=kernel.itemsize
+  #np.lib.stride_tricks.as_strided(x, shape = (5, 4), strides = (8,8))
+  n_C,n_C_prev,f,f=kernel.shape
+  return kernel.reshape(n_C,f*f*n_C_prev)
+
+
+
 def vecConv(X,kernel,hparameters):
     """
     X -- python numpy array of shape (m, n_C, n_H, n_W) representing a batch of m images
@@ -32,7 +43,7 @@ def vecConv(X,kernel,hparameters):
     pad=hparameters["pad"]
     s=hparameters["stride"]
 
-    zero_pad(X, pad)
+    X=zero_pad(X, pad)
 
     out=im2colStride(X[0,:,:,:],kernel[0,:,:,:],s)
 
@@ -43,4 +54,8 @@ def vecConv(X,kernel,hparameters):
     wx=1+(n_W-kf)//s
     n_C=X.shape[1]
 
-    return out.reshape(wx*wh,kf*kf*n_C)
+    inp=out.reshape(wx*wh,kf*kf*n_C) #vectorized input
+    ker=vecKernel(kernel).T  #vectorized kernel
+    conv=np.dot(inp,ker)  #vectorize convolution         
+    return conv.reshape(kernel.shape[0],wh,wx)
+    #return out.reshape(wx*wh,kf*kf*n_C)
