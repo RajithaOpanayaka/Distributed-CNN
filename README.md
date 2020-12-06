@@ -1,1 +1,1 @@
-# Distributed-YOLO
+# Distributed-CNN
