@@ -31,8 +31,7 @@ def relu(Z):
 
 def zero_pad(X, pad):
     """
-    Pad with zeros all images of the dataset X. The padding is applied to the height and width of an image,
-    as illustrated in Figure 1.
+    Pad with zeros all images of the dataset X. The padding is applied to the height and width of an image.
 
     Argument:
     X -- python numpy array of shape (m, n_H, n_W, n_C) representing a batch of m images
