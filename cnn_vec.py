@@ -61,33 +61,21 @@ def vecConv(X,kernel,hparameters):
     #return out.reshape(wx*wh,kf*kf*n_C)
 
 
-def maxPooling(X,f,hparameters):
+def Pooling(X,hparameters,mode="max"):
     """
     X- numpy array (n_C, n_H, n_W)
-    f-kernel size
-    hparameters-stride and pad
+    hparameters-"f" and "stride"
     """
     strided = np.lib.stride_tricks.as_strided
     n_C,n_H,n_W=X.shape
-    pad=hparameters["pad"]
+    f=hparameters["f"]
     s=hparameters["stride"]
     nc,nh,nw=X.strides
     out = strided(X, shape=(n_C,1+(n_H-f)//s,1+(n_W-f)//s,f,f), strides=(nc,nh*s,nw*s,nh,nw))
     vecout = out.reshape(n_C,1+(n_H-f)//s,1+(n_W-f)//s,f*f)
-    return np.amax(vecout,axis=3)
-
-def avgPool(X,f,hparameters):
-    """
-    X- numpy array (n_C, n_H, n_W)
-    f-kernel size
-    hparameters-stride and pad
-    """
-    strided = np.lib.stride_tricks.as_strided
-    n_C,n_H,n_W=X.shape
-    pad=hparameters["pad"]
-    s=hparameters["stride"]
-    nc,nh,nw=X.strides
-    out = strided(X, shape=(n_C,1+(n_H-f)//s,1+(n_W-f)//s,f,f), strides=(nc,nh*s,nw*s,nh,nw))
-    vecout = out.reshape(n_C,1+(n_H-f)//s,1+(n_W-f)//s,f*f)
-    return np.average(vecout,axis=3)
+    if mode=="max":
+        return np.amax(vecout,axis=3)
+    elif mode=="average":
+        return np.average(vecout,axis=3)
+    
 
