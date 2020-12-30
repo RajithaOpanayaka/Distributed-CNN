@@ -13,33 +13,35 @@ class Offload():
     def outShape(self):
         """
             X-numpy array numpy array (m,n_C, n_H, n_W)
-            k-kernel numpy array (f,f,n_C,c)
+            k-kernel (n_C, n_C_prev, f, f)
             return-convolution output shape
         """
         p=self.hparam["pad"]
         s=self.hparam["stride"]
         m,n_C,n_H,n_W=self.X.shape
-        f,f,knc,c=self.kernel.shape
-        nh=((n_H+2*p-f)/s)+1
-        nw=((n_W+2*p-f)/s)+1
-        return (c,nh,nw)
+        c,knc,f,f=self.kernel.shape
+        nh=int((n_H+2*p-f)/s+1)
+        nw=int((n_W+2*p-f)/s+1)
+        return (m,c,nh,nw)
 
     def amountOfComputation(self):
         """
             X-numpy array numpy array (m,n_C, n_H, n_W)
-            k-kernel numpy array (f,f,n_C,c)
+            k-kernel numpy array (n_C, n_C_prev, f, f)
             output-amout of computation base on arithmatic operations
         """
-        p=self.hparam["pad"]
-        s=self.hparam["stride"]
-        m,n_C,n_H,n_W=self.X.shape
-        f,f,knc,c=self.kernel.shape
-        nh=((n_H+2*p-f)/s)+1
-        nw=((n_W+2*p-f)/s)+1
+        # p=self.hparam["pad"]
+        # s=self.hparam["stride"]
+        # m,n_C,n_H,n_W=self.X.shape
+        # f,f,knc,c=self.kernel.shape
+        # nh=int((n_H+2*p-f)/s+1)
+        # nw=int((n_W+2*p-f)/s+1)
+        m,c,nh,nw=self.outShape()
+        c,knc,f,f=self.kernel.shape
 
-        n=f*f*n_C   #length of a column
+        n=f*f*knc   #length of a column
         num_arth_col=2*n-1 #number of arithmatic operations per column
-        return num_arth_col*nh*nw*c
+        return num_arth_col*nh*nw*c*m
     
     def amountOfData(self):
         """
@@ -49,19 +51,14 @@ class Offload():
     def vecShape(self):
         """
             X-numpy array (m,n_C, n_H, n_W)
+            k-kernel numpy array (n_C, n_C_prev, f, f)
             return - vectorized X shape
         """
-        p=self.hparam["pad"]
-        s=self.hparam["stride"]
-        m,n_C,n_H,n_W=self.X.shape
-        f,f,knc,c=self.kernel.shape
-        nh=((n_H+2*p-f)//s)+1
-        nw=((n_W+2*p-f)//s)+1
+        
+        c,knc,f,f=self.kernel.shape
+        m,c,nh,nw=self.outShape()
 
-        n=f*f*n_C   #length of a column
-
-        #return {x:(nh*nw,f*f*n_C),k:(c,f*f*n_C)}
-        return (nh*nw,f*f*n_C)
+        return (nh*nw,f*f*knc)
 
 
     def checkOffload(self,thershold):
@@ -72,15 +69,15 @@ class Offload():
         n_CPI=1
         s_CPI=1
         size=self.X.itemsize
-        x=vecShape()
+        x=self.vecShape()
         #amount of memory 
         mem_amount=size*x[0]*x[1]+getsizeof(self.kernel) #vec inputsize + kernel size (=vec kernel size)
         #output shape
-        out_shape=outShape()
+        out_shape=self.outShape()
         out_data=size*out_shape[0]*out_shape[1]*out_shape[2]
         #amount of arithmatic operations
-        ts=(amountOfComputation()*n_CPI/self.server_speed)+ (out_data/self.bandwidth_down) + (amountOfData()/self.bandwidth_up)
-        tn=amountOfComputation()*n_CPI/self.node_speed
+        ts=(self.amountOfComputation()*s_CPI/self.server_speed)+ (out_data/self.bandwidth_down) + (self.amountOfData()/self.bandwidth_up)
+        tn=self.amountOfComputation()*n_CPI/self.node_speed
         if tn>ts:
             return True
         elif mem_amount>self.memory_size*thershold:
