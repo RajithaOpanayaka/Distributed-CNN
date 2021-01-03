@@ -1,6 +1,6 @@
 from client import client
 from offload import offload
-
+import numpy as np
 """
 input CNN
  
@@ -31,11 +31,11 @@ class Master:
             #offloading decisions
             kernel=layer["kernel"]
             hparam=layer["hparams"]
-            off_dec=offload(n_speed,s_speed,msize,X,kernel,hparam)
-            if(checkOffload(thershold)):
+            if layer[l_type]=="conv":
+                off_dec=offload(n_speed,s_speed,msize,X,kernel,hparam)
+            if(off_dec.checkOffload(thershold)):
                 #get the result form the server
-                pass
-                
+                pass   
             else:
                 for node in self.nodes:
                     c=client(layer)
@@ -45,3 +45,10 @@ class Master:
 
             
 
+#########################################################
+CNN=[{l_type:"conv",kernle:"W1",hparams:{stride:1,pad:2}},{l_type:"Max_pool",hparams:{stride:1,f:2}}]
+nodes=["192.168.1.1"]
+edge=["192.168.1.1"]
+image=np.array([1,2])
+master_node=Master(CNN,nodes,edge,image)
+master_node.compute(2.3,3.3,1000,50)
