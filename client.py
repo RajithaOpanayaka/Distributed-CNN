@@ -13,9 +13,10 @@ class client(Thread):
 	data = b''
 	valdict=0
 	x=0
-	def __init__(self,values):
+	def __init__(self,values,ip):
 		super(client, self).__init__()
 		self.valdict=values
+		self.ip=ip
 
 	def send(self,c,data):
 		data_string=pickle.dumps(data)
@@ -42,7 +43,7 @@ class client(Thread):
 
 	def run(self):
 		c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		c.connect(('localhost',9999)) #ip address and port
+		c.connect((self.ip,9999)) #ip address and port
 		self.send(c,self.valdict)
 		self.x=self.receive_array(self.data,self.payload_size,c)
 	def value(self):
