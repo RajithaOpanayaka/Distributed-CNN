@@ -13,16 +13,22 @@ class client(Thread):
 	data = b''
 	valdict=0
 	x=0
-	def __init__(self,values,ip):
+	def __init__(self,values,ip,port):
 		super(client, self).__init__()
 		self.valdict=values
 		self.ip=ip
+		self.port=port
+		self.c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.c.connect((self.ip,self.port)) #ip address and port
 
-	def send(self,c,data):
-		data_string=pickle.dumps(data)
+	def send(self):
+		data_string=pickle.dumps(self.valdict)
 		message_size = struct.pack("L", len(data_string))
-		c.sendall(message_size+data_string)
-	def receive_array(self,data,payload_size,conn):
+		self.c.sendall(message_size+data_string)
+	def receive_array(self):
+		data=self.data
+		payload_size=self.payload_size
+		conn=self.c
 		while len(data) < payload_size:
 			data += conn.recv(4096)
 
@@ -42,10 +48,8 @@ class client(Thread):
 		return frame
 
 	def run(self):
-		c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		c.connect((self.ip,9999)) #ip address and port
-		self.send(c,self.valdict)
-		self.x=self.receive_array(self.data,self.payload_size,c)
+		self.send()
+		self.x=self.receive_array()
 	def value(self):
 		return self.x
 
@@ -61,7 +65,7 @@ image=np.random.randn(1,256,256, 3) #h256X256 image
 a=round(w.W1.shape[3]/2)
 conv_dict = { "data":image,"hpara":w.hparameters1,"pos":a}
 #tic = time.process_time()
-c=client(conv_dict)
+c=client(conv_dict,'localhost',9999)
 c.start()
 #client process conv portion
 tic = time.process_time()
