@@ -16,6 +16,7 @@ from offload import Offload
 import pytest
 import numpy as np
 from vec import Pooling
+from yolo import pool_forward
 
 def test_outshape():
     """
@@ -52,29 +53,11 @@ def test_vecShape():
     assert obj.vecShape()==(9,8)
 
 
-# def test_Pooling():
-#     np.random.seed(1)
-#     A_prev = np.random.randn(1, 5, 5, 3)
-#     hparameters = {"stride" : 1, "f": 2}
-#     max_output=[[[ 1.62434536,  0.86540763, -0.52817175],
-#          [ 1.74481176,  0.90159072,  0.50249434],
-#          [ 1.74481176,  1.46210794,  0.50249434],
-#          [ 0.90085595,  1.46210794,  1.13376944]],
-
-#         [[ 0.04221375,  0.58281521, -0.0126646 ],
-#          [ 1.14472371,  0.90159072,  1.65980218],
-#          [ 1.14472371,  0.90159072,  1.65980218],
-#          [ 0.90085595,  1.6924546 ,  0.53035547]],
-
-#         [[ 0.12015895,  0.61720311,  2.10025514],
-#          [ 0.12015895,  0.61720311,  1.65980218],
-#          [ 0.74204416,  0.58662319,  1.65980218],
-#          [ 0.93110208,  1.6924546 ,  0.88514116]],
-
-#         [[ 0.12015895,  1.25286816,  2.10025514],
-#          [ 1.13162939,  1.51981682,  2.18557541],
-#          [ 1.13162939,  1.51981682,  2.18557541],
-#          [ 0.93110208,  0.87616892,  0.88514116]]]
-#     assert_array_equal(Pooling(A_prev[0,:,:,:],hparameters,mode="max"),max_output)
+def test_Pooling():
+    np.random.seed(1)
+    A_prev = np.random.randn(1, 5, 5, 3)
+    hparameters = {"stride" : 1, "f": 2}
+    max_output=pool_forward(A_prev, hparameters)
+    np.testing.assert_array_equal(Pooling(A_prev[0,:,:,:],hparameters),max_output[0,:,:,:])
 
 
