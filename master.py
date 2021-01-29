@@ -40,7 +40,8 @@ class Master:
         for node in self.nodes:
             start,end=self.getPos(n_C,end,len(self.nodes))
             a=(start,end)
-            conv_dict = {"data":X,"pos":a,"layer":layer}
+            d=X[0,:,:,:]
+            conv_dict = {"data":d,"pos":a,"layer":layer}
             threads.append(client(conv_dict,node["ip"],node["port"]))
         for t in threads:
             t.start()
