@@ -48,14 +48,27 @@ def receive_array(data,payload_size,conn):
 
 
 while True:
+    """
+        data_variable={"data":X,"pos":a,"layer":layer}
+        a=(start,end)
+        layer={"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":0}}
+        pooling layer testing
+        layer2={"l_type":"max","hparams":{"stride":1,"f":2}}
+    """
     c,addr =s.accept()
     #receive data from client
     tic = time.process_time()
     data_variable=receive_array(data,payload_size,c)
     print('Connect with',addr,data_variable["data"].shape)
     #imgout=y.conv_forward(data_variable["data"], w.W1[:,:,:,data_variable["pos"]:], w.b1[:,:,:,data_variable["pos"]:],data_variable["hpara"])
-    
-    out={"data":imgout}
+    #out={"data":imgout}
+    pos=data_variable["pos"]
+    hparam=data_variable["layer"]["hparams"]
+    mode=data_variable["layer"]["l_type"]
+    if(mode=="conv"):
+        out=vecConv(X,w[:,:,:,pos[0]:pos[1]],hparam)
+    else:
+        out=Pooling(X[:,:,pos[0]:pos[1]],hparam,mode)
     send(c,out)
     toc = time.process_time()
     print ("Computation time for conv part2 = " + str(1000*(toc - tic)) + "ms")
