@@ -5,7 +5,8 @@ import time
 import numpy as np
 import struct
 import yolo as y
-import weights as w
+import weights as kernels
+from vec import vecConv,Pooling
 
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -52,7 +53,8 @@ while True:
     tic = time.process_time()
     data_variable=receive_array(data,payload_size,c)
     print('Connect with',addr,data_variable["data"].shape)
-    imgout=y.conv_forward(data_variable["data"], w.W1[:,:,:,data_variable["pos"]:], w.b1[:,:,:,data_variable["pos"]:],data_variable["hpara"])
+    #imgout=y.conv_forward(data_variable["data"], w.W1[:,:,:,data_variable["pos"]:], w.b1[:,:,:,data_variable["pos"]:],data_variable["hpara"])
+    
     out={"data":imgout}
     send(c,out)
     toc = time.process_time()

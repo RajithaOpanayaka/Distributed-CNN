@@ -15,8 +15,8 @@
 from offload import Offload
 import pytest
 import numpy as np
-from vec import Pooling
-from yolo import pool_forward
+from vec import Pooling,vecConv
+from yolo import pool_forward,conv_forward
 
 def test_outshape():
     """
@@ -59,5 +59,20 @@ def test_Pooling():
     hparameters = {"stride" : 1, "f": 2}
     max_output=pool_forward(A_prev, hparameters)
     np.testing.assert_array_equal(Pooling(A_prev[0,:,:,:],hparameters),max_output[0,:,:,:])
+
+def test_conv():
+    np.random.seed(1)
+    A_prev = np.random.randn(1, 3, 3, 3)
+    hparameters = {"pad" : 0,"stride": 1}
+    w=np.ones((2,2,3,1))
+    b=np.zeros(((1, 1, 1,1)))
+    c_out=conv_forward(A_prev,w,b,hparameters)
+    print(c_out.shape)
+    print(c_out[0,:,:,:])
+    v_out=vecConv(A_prev[0,:,:,:],w,hparameters)
+    print(v_out.shape)
+    print(v_out)
+    np.testing.assert_array_equal(v_out,c_out[0,:,:,:])
+
 
 

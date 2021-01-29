@@ -13,8 +13,6 @@ hparameters2 = {"stride" : 2, "f": 2}
 hparameters4 = {"stride" : 2, "f": 2}
 hparameters5 = {"pad" : 32,"stride": 2}
 
-W_test=np.ones((1,3,3,1))
-b1_test=np.random.randn(1,1,1,1)
-hparameters1_test={"pad" : 0,"stride": 1}
-kernels={"W1":W_test,"b1":b1_test,"hparam":hparameters1_test}
-
+W_test=np.ones((2,2,1,1))
+b1_test=np.zeros((1,1,1,1))
+kernels={"W1":W_test,"b1":b1_test}
