@@ -5,7 +5,7 @@ import time
 import numpy as np
 import struct
 import yolo as y
-import weights as kernels
+from weights import kernels
 from vec import vecConv,Pooling
 
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,14 +62,17 @@ while True:
     print('Connect with',addr,data_variable["data"].shape)
     #imgout=y.conv_forward(data_variable["data"], w.W1[:,:,:,data_variable["pos"]:], w.b1[:,:,:,data_variable["pos"]:],data_variable["hpara"])
     #out={"data":imgout}
+    X=data_variable["data"]
     pos=data_variable["pos"]
     hparam=data_variable["layer"]["hparams"]
     mode=data_variable["layer"]["l_type"]
+    w=kernels[data_variable["layer"]["kernel"]]
     if(mode=="conv"):
         out=vecConv(X,w[:,:,:,pos[0]:pos[1]],hparam)
     else:
         out=Pooling(X[:,:,pos[0]:pos[1]],hparam,mode)
-    send(c,out)
+    dout={"data":out}
+    send(c,dout)
     toc = time.process_time()
     print ("Computation time for conv part2 = " + str(1000*(toc - tic)) + "ms")
     #send data to client
