@@ -48,7 +48,7 @@ class Master:
         out= self.layerResult(layer,X,pos)
         for t in threads:
             t.join()
-            out=np.concatenate((out,t.value()["data"]), axis=3)
+            out=np.concatenate((out,t.value()["data"]), axis=2)
         self.count=0
 
         return out
@@ -125,40 +125,47 @@ class Master:
 
 #########################################################
 CNN=[{"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":2}},{"l_type":"max","hparams":{"stride":1,"f":2}}]
-nodes=[{"ip":"localhost","port":9999}]
+nodes=[{"ip":"localhost","port":9998},{"ip":"localhost","port":9999}]
 edge={"ip":"localhost","port":9000}
 image=np.array([1,2])
 master_node=Master(CNN,nodes,edge,image)
 #master_node.compute(2.3,3.3,1000,50)
-"""
-W_test=np.ones((2,2,1,1))
-b1_test=np.zeros((1,1,1,1))
-hparameters1_test={"pad" : 0,"stride": 1}
-"""
-X=np.ones((1,3,3,1))
-#conv testing
-layer={"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":0}}
-#pooling layer testing
-layer2={"l_type":"max","hparams":{"stride":1,"f":2}}
-print('=======getPos=========================')
-pos=master_node.getPos(kernels[layer["kernel"]].shape[3],0,0)
-print(pos)
-print('=====layer result=====================')
-result=master_node.layerResult(layer,X,pos)
-result2=master_node.layerResult(layer2,X,pos)
-print(result)
-print(result.shape)
-print('=======pooling layer=================')
-print(result2)
-print(result2.shape)
+# """
+# W_test=np.ones((2,2,1,1))
+# b1_test=np.zeros((1,1,1,1))
+# hparameters1_test={"pad" : 0,"stride": 1}
+# """
+# X=np.ones((1,3,3,1))
+# #conv testing
+# layer={"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":0}}
+# #pooling layer testing
+# layer2={"l_type":"max","hparams":{"stride":1,"f":2}}
+# print('=======getPos=========================')
+# print(master_node.getPos(1,0,1))
+# pos=master_node.getPos(kernels[layer["kernel"]].shape[3],0,0)
+# print(pos)
+# print('=====layer result=====================')
+# result=master_node.layerResult(layer,X,pos)
+# result2=master_node.layerResult(layer2,X,pos)
+# print(result)
+# print(result.shape)
+# print('=======pooling layer=================')
+# print(result2)
+# print(result2.shape)
 
 print('============thread test===============')
 #thread_Compute(self,X,layer)
 #W_test=np.ones((2,2,1,1))
 np.random.seed(1)
-X1= np.random.randn(1, 3, 3, 6)
+X1= np.random.randn(1, 3, 3, 1)
 layer1={"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":0}}
 result3=master_node.thread_Compute(X1,layer1)
 print(result3.shape)
 print(result3)
 #master_node.thread_Compute(X,layer)
+
+
+# print('============vecConv test==================')
+# out=vecConv(X1[0,:,:,:],kernels["W1"],{"stride":1,"pad":0})
+# print(out.shape)
+# print(out)

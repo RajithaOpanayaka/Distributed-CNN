@@ -17,6 +17,8 @@ import pytest
 import numpy as np
 from vec import Pooling,vecConv
 from yolo import pool_forward,conv_forward
+from weights import kernels
+from master import Master
 
 def test_outshape():
     """
@@ -60,19 +62,35 @@ def test_Pooling():
     max_output=pool_forward(A_prev, hparameters)
     np.testing.assert_array_equal(Pooling(A_prev[0,:,:,:],hparameters),max_output[0,:,:,:])
 
-def test_conv():
+# def test_conv():
+#     np.random.seed(1)
+#     A_prev = np.random.randn(1, 3, 3, 3)
+#     hparameters = {"pad" : 0,"stride": 1}
+#     w=np.ones((2,2,3,1))
+#     b=np.zeros(((1, 1, 1,1)))
+#     c_out=conv_forward(A_prev,w,b,hparameters)
+#     print(c_out.shape)
+#     print(c_out[0,:,:,:])
+#     v_out=vecConv(A_prev[0,:,:,:],w,hparameters)
+#     print(v_out.shape)
+#     print(v_out)
+#     np.testing.assert_array_equal(v_out,c_out[0,:,:,:])
+
+
+def test_Distribute():
+    #initilalize master node
+    CNN=[{"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":0}},{"l_type":"max","hparams":{"stride":1,"f":2}}]
+    nodes=[{"ip":"localhost","port":9998}]
+    edge={"ip":"localhost","port":9000}
+    image=np.array([1,2])
+    master_node=Master(CNN,nodes,edge,image)
     np.random.seed(1)
-    A_prev = np.random.randn(1, 3, 3, 3)
-    hparameters = {"pad" : 0,"stride": 1}
-    w=np.ones((2,2,3,1))
-    b=np.zeros(((1, 1, 1,1)))
-    c_out=conv_forward(A_prev,w,b,hparameters)
-    print(c_out.shape)
-    print(c_out[0,:,:,:])
-    v_out=vecConv(A_prev[0,:,:,:],w,hparameters)
-    print(v_out.shape)
-    print(v_out)
-    np.testing.assert_array_equal(v_out,c_out[0,:,:,:])
+    X1= np.random.randn(1, 3, 3, 1)
+    out=vecConv(X1[0,:,:,:],kernels["W1"],{"stride":1,"pad":0})
+    out2=master_node.thread_Compute(X1,CNN[0])
+    np.testing.assert_array_equal(out2,out)
+
+
 
 
 
