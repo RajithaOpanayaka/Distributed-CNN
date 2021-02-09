@@ -3,6 +3,7 @@ from offload import Offload
 import numpy as np
 from vec import vecConv,Pooling
 from weights import kernels
+from activation import ActivationFunc
 """
 input CNN
  
@@ -129,6 +130,9 @@ class Master:
                 X=self.thread_Compute(X,layer)
             
             #activation function and bais apply for conv
+            if layer[l_type]=="conv":
+                X+=kernels[layer["bias"]]
+                X= ActivationFunc(X,layer["act"])
 
 
             
@@ -137,7 +141,7 @@ class Master:
             
 
 #########################################################
-CNN=[{"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":2}},{"l_type":"max","hparams":{"stride":1,"f":2}}]
+CNN=[{"l_type":"conv","kernel":"W1","bias":"b1","hparams":{"stride":1,"pad":2},"act":"relu"},{"l_type":"max","hparams":{"stride":1,"f":2}}]
 nodes=[{"ip":"localhost","port":9999}]
 edge={"ip":"localhost","port":9000}
 image=np.array([1,2])
