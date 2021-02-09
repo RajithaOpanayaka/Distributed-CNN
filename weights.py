@@ -12,3 +12,8 @@ hparameters3 = {"pad" : 65,"stride": 2}
 hparameters2 = {"stride" : 2, "f": 2}
 hparameters4 = {"stride" : 2, "f": 2}
 hparameters5 = {"pad" : 32,"stride": 2}
+
+np.random.seed(1)
+W_test=np.random.randn(2,2,1,6)
+b1_test=np.zeros((1,1,1,1))
+kernels={"W1":W_test,"b1":b1_test}
