@@ -22,7 +22,7 @@ class Master:
         self.count=0
     def thread_Compute(self,X,layer):
         """
-            X-numpy array(m,n_H_prev, n_W_prev, n_C_prev)
+            X-numpy array(n_H_prev, n_W_prev, n_C_prev)
             Distribute and return output 
         """
         threads=[]
@@ -32,7 +32,7 @@ class Master:
         if layer["l_type"]=="conv":
             n_C=kernels[layer["kernel"]].shape[3]
         else:
-            n_C=X.shape[3]
+            n_C=X.shape[2]
         
         #======================
         pos=self.getPos(n_C,0,len(self.nodes))
@@ -40,8 +40,7 @@ class Master:
         for node in self.nodes:
             start,end=self.getPos(n_C,end,len(self.nodes))
             a=(start,end)
-            d=X[0,:,:,:]
-            conv_dict = {"data":d,"pos":a,"layer":layer}
+            conv_dict = {"data":X,"pos":a,"layer":layer}
             threads.append(client(conv_dict,node["ip"],node["port"]))
         for t in threads:
             t.start()
@@ -71,7 +70,7 @@ class Master:
     def layerResult(self,layer,X,pos):
         """ 
             layer-dictonary l_type,kernel,hparams
-            X-numpy array(m,n_H_prev, n_W_prev, n_C_prev)
+            X-numpy array(n_H_prev, n_W_prev, n_C_prev)
             pooling-
                 X-numpy array(n_H_prev, n_W_prev, n_C_prev)
                 hparameters-"f" and "stride"
@@ -85,12 +84,12 @@ class Master:
         if(layer["l_type"]=="conv"):
             w=kernels[layer["kernel"]]
             hparam=layer["hparams"]
-            return vecConv(X[0,:,:,:],w[:,:,:,pos[0]:pos[1]],hparam)
+            return vecConv(X,w[:,:,:,pos[0]:pos[1]],hparam)
         else:
             hparam=layer["hparams"]
             mode=layer["l_type"]
             #batch size of 1
-            return Pooling(X[0,:,:,pos[0]:pos[1]],hparam,mode)
+            return Pooling(X[:,:,pos[0]:pos[1]],hparam,mode)
     
     def compute(self,n_speed,s_speed,msize,thershold):
         """
@@ -103,29 +102,28 @@ class Master:
         for layer in self.CNN:
             #layer dictonary {type,kernel,bias,hparams}
             #offloading decisions
-            kernel=layer["kernel"]
+            kernel=kernels[layer["kernel"]]
             hparam=layer["hparams"]
-            if layer[l_type]=="conv":
-                off_dec=offload(n_speed,s_speed,msize,X,kernel,hparam)
-                if(off_dec.checkOffload(thershold)):
-                    #get the result form the server
-                    conv_dict={ "data":X,"l_type":layer[l_type],"hpara":hparam,"pos":0}
-                    c=client(conv_dict,self.edge["ip"],self.edge["port"])
-                    c.send()
-                    X=c.receive_array()
-                    
-                else:
-                    X=self.thread_Compute(X,layer)
-
+            off_dec=Offload(n_speed,s_speed,msize,X,kernel,hparam,100,100)
+            if(off_dec.checkOffload(thershold)):
+                #get the result form the server
+                conv_dict={ "data":X,"l_type":layer[l_type],"hpara":hparam,"pos":(0,kernel.shape[3])}
+                c=client(conv_dict,self.edge["ip"],self.edge["port"])
+                c.send()
+                X=c.receive_array()
+            elif X[3]<100:
+                X=self.layerResult(layer,X,(0,kernel.shape[3]))
             else:
                 X=self.thread_Compute(X,layer)
+
+            
                 
 
             
 
 #########################################################
 CNN=[{"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":2}},{"l_type":"max","hparams":{"stride":1,"f":2}}]
-nodes=[{"ip":"localhost","port":9998},{"ip":"localhost","port":9999}]
+nodes=[{"ip":"localhost","port":9999}]
 edge={"ip":"localhost","port":9000}
 image=np.array([1,2])
 master_node=Master(CNN,nodes,edge,image)
@@ -157,7 +155,7 @@ print('============thread test===============')
 #thread_Compute(self,X,layer)
 #W_test=np.ones((2,2,1,1))
 np.random.seed(1)
-X1= np.random.randn(1, 3, 3, 1)
+X1= np.random.randn(3, 3, 1)
 layer1={"l_type":"conv","kernel":"W1","hparams":{"stride":1,"pad":0}}
 result3=master_node.thread_Compute(X1,layer1)
 print(result3.shape)
