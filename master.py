@@ -40,7 +40,10 @@ class Master:
         for node in self.nodes:
             start,end=self.getPos(n_C,end,len(self.nodes))
             a=(start,end)
-            conv_dict = {"data":X,"pos":a,"layer":layer}
+            if layer["l_type"]=="conv":
+                conv_dict = {"data":X,"pos":a,"layer":layer}
+            else:
+                conv_dict = {"data":X[:,:,a[0]:a[1]],"layer":layer}
             threads.append(client(conv_dict,node["ip"],node["port"]))
         for t in threads:
             t.start()
@@ -105,16 +108,28 @@ class Master:
             kernel=kernels[layer["kernel"]]
             hparam=layer["hparams"]
             off_dec=Offload(n_speed,s_speed,msize,X,kernel,hparam,100,100)
-            if(off_dec.checkOffload(thershold)):
+            if X.shape[2]<50:
+                pos=0
+                if layer[l_type]=="conv":
+                    pos=(0,kernel.shape[3])
+                else:
+                    pos=(0,X.shape[2])
+                X=self.layerResult(layer,X,pos)
+            elif (off_dec.checkOffload(thershold)):
                 #get the result form the server
-                conv_dict={ "data":X,"l_type":layer[l_type],"hpara":hparam,"pos":(0,kernel.shape[3])}
+                if layer[l_type]=="conv":
+                    conv_dict={ "data":X,"l_type":layer[l_type],"hpara":hparam,"pos":(0,kernel.shape[3])}
+                else:
+                    conv_dict={ "data":X,"l_type":layer[l_type],"hpara":hparam}
+
                 c=client(conv_dict,self.edge["ip"],self.edge["port"])
                 c.send()
                 X=c.receive_array()
-            elif X[3]<100:
-                X=self.layerResult(layer,X,(0,kernel.shape[3]))
             else:
                 X=self.thread_Compute(X,layer)
+            
+            #activation function and bais apply for conv
+
 
             
                 
