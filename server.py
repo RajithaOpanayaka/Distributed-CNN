@@ -63,14 +63,14 @@ while True:
     #imgout=y.conv_forward(data_variable["data"], w.W1[:,:,:,data_variable["pos"]:], w.b1[:,:,:,data_variable["pos"]:],data_variable["hpara"])
     #out={"data":imgout}
     X=data_variable["data"]
-    pos=data_variable["pos"]
     hparam=data_variable["layer"]["hparams"]
     mode=data_variable["layer"]["l_type"]
-    w=kernels[data_variable["layer"]["kernel"]]
     if(mode=="conv"):
+        pos=data_variable["pos"]
+        w=kernels[data_variable["layer"]["kernel"]]
         out=vecConv(X,w[:,:,:,pos[0]:pos[1]],hparam)
     else:
-        out=Pooling(X[:,:,pos[0]:pos[1]],hparam,mode)
+        out=Pooling(X,hparam,mode)
     dout={"data":out}
     send(c,dout)
     toc = time.process_time()
