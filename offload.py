@@ -71,12 +71,11 @@ class Offload():
         ts=(self.amountOfComputation()/self.server_speed)+ (out_data/self.bandwidth_down) + (self.amountOfData()/self.bandwidth_up)
         tn=self.amountOfComputation()/self.node_speed
         if tn>ts:
-            print(ts)
-            print(tn)
             return True
         elif mem_amount>self.memory_size*thershold:
             return True
         else:
+            print('tn '+str(tn)+' ts '+str(ts))
             return False
         
 
@@ -90,8 +89,8 @@ X=np.random.randn(64,64,128)
 #(f, f, n_C_prev, n_C)
 kernel=np.random.randn(9,9,128,256)
 hparam={"pad":0,"stride":1}
-bandwidth_up=1000
-bandwidth_down=1000
+bandwidth_up=1583113.456 #bytespersec
+bandwidth_down=1583113.456
 threshold=0.7
 print('Node Speed :'+str(n_speed)+"GHz")
 print('Server Speed :'+ str(s_speed)+"GHz")
