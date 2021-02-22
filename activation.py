@@ -31,7 +31,7 @@ def ActivationFunc(X,name):
     elif name=="softmax":
         return softmax(X)
 
-np.random.seed(1)
-x=np.random.randn(2,2,1)
-ans=ActivationFunc(x,"softmax")
-print(ans)
+# np.random.seed(1)
+# x=np.random.randn(2,2,1)
+# ans=ActivationFunc(x,"softmax")
+# print(ans)
