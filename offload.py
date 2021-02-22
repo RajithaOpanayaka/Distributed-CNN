@@ -3,9 +3,9 @@ import numpy as np
 class Offload():
     def __init__(self,n_speed,s_speed,msize,X,kernel,hparam,bandwidth_up,bandwidth_down):
         super(Offload, self).__init__()
-        self.node_speed=n_speed
-        self.server_speed=s_speed
-        self.memory_size=msize
+        self.node_speed=n_speed   #GFLOPS
+        self.server_speed=s_speed #GFLOPS
+        self.memory_size=msize #mb
         self.X=X
         self.kernel=kernel
         self.hparam=hparam
@@ -36,7 +36,7 @@ class Offload():
 
         n=f*f*knc   #length of a column
         num_arth_col=2*n-1 #number of arithmatic operations per column
-        return num_arth_col*nh*nw*c
+        return num_arth_col*nh*nw*nc
     
     def amountOfData(self):
         """
@@ -60,41 +60,38 @@ class Offload():
             threshold- maximum allowed memory precentage
             output-True when need to offload
         """
-        n_CPI=1
-        s_CPI=1
         size=self.X.itemsize
         x=self.vecShape()
         #amount of memory 
-        mem_amount=size*x[0]*x[1]+getsizeof(self.kernel) #vec inputsize + kernel size (=vec kernel size)
+        mem_amount=(size*x[0]*x[1]+getsizeof(self.kernel))/(1024*1024) #vec inputsize + kernel size (=vec kernel size) mb
         #output shape
         out_shape=self.outShape()
         out_data=size*out_shape[0]*out_shape[1]*out_shape[2] #in bytes
         #amount of arithmatic operations
-        ts=(self.amountOfComputation()*s_CPI/self.server_speed)+ (out_data/self.bandwidth_down) + (self.amountOfData()/self.bandwidth_up)
-        tn=self.amountOfComputation()*n_CPI/self.node_speed
+        ts=(self.amountOfComputation()/self.server_speed)+ (out_data/self.bandwidth_down) + (self.amountOfData()/self.bandwidth_up)
+        tn=self.amountOfComputation()/self.node_speed
         if tn>ts:
-            print(ts)
-            print(tn)
             return True
         elif mem_amount>self.memory_size*thershold:
             return True
         else:
+            print('tn '+str(tn)+' ts '+str(ts))
             return False
         
 
 print('==========offload test===============================================')
 np.random.seed(1)
-s_speed=2.3*5
-n_speed=2.3
-msize=1024*1024 #1GB
+s_speed=5.04*(10**12) #tesla server GFL0PS
+n_speed=5.3*(10**9) #raspbery pi 3 GFLOPS
+msize=1024 #1GB
 #(n_H_prev, n_W_prev, n_C_prev)
-X=np.random.randn(3,3,1)
+X=np.random.randn(64,64,128)
 #(f, f, n_C_prev, n_C)
-kernel=np.random.randn(2,2,1,2)
+kernel=np.random.randn(9,9,128,256)
 hparam={"pad":0,"stride":1}
-bandwidth_up=1000
-bandwidth_down=1000
-threshold=0.5
+bandwidth_up=1583113.456 #bytespersec
+bandwidth_down=1583113.456
+threshold=0.7
 print('Node Speed :'+str(n_speed)+"GHz")
 print('Server Speed :'+ str(s_speed)+"GHz")
 print('Memory Size :'+str(msize)+ "bytes")
