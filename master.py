@@ -94,8 +94,13 @@ class Master:
             mode=layer["l_type"]
             #batch size of 1
             return Pooling(X[:,:,pos[0]:pos[1]],hparam,mode)
+    def poolingMem(self,X,hparam):
+        n_H,n_W,n_C=X.shape
+        f=hparam["f"]
+        s=hparam["stride"]
+        return X.itemsize*(f*f)*(1+(n_H-f)//s)*(1+(n_W-f)//s)*n_C
     
-    def compute(self,n_speed,s_speed,msize,thershold):
+    def compute(self,n_speed,s_speed,msize,thershold,bandwidth):
         """
             n_speed-node CPU speed
             s_speed-server CPU speed
@@ -108,7 +113,13 @@ class Master:
             #offloading decisions
             kernel=kernels[layer["kernel"]]
             hparam=layer["hparams"]
-            off_dec=Offload(n_speed,s_speed,msize,X,kernel,hparam,100,100)
+            if(layer["l_type"]=="conv"):
+                #n_speed,s_speed,msize,X,kernel,hparam,bandwidth_up,bandwidth_down
+                off_dec=Offload(n_speed,s_speed,msize,X,kernel,hparam,bandwidth,bandwidth)
+                offDec=off_dec.checkOffload(thershold)
+            else:
+                #pooling layer memory usage
+                offDec=self.poolingMem(X,hparam)
             if X.shape[2]<50:
                 pos=0
                 if layer[l_type]=="conv":
@@ -116,7 +127,7 @@ class Master:
                 else:
                     pos=(0,X.shape[2])
                 X=self.layerResult(layer,X,pos)
-            elif (off_dec.checkOffload(thershold)):
+            elif (offDec):
                 #get the result form the server
                 if layer[l_type]=="conv":
                     conv_dict={ "data":X,"l_type":layer[l_type],"hpara":hparam,"pos":(0,kernel.shape[3])}
@@ -133,6 +144,8 @@ class Master:
             if layer[l_type]=="conv":
                 X+=kernels[layer["bias"]]
                 X= ActivationFunc(X,layer["act"])
+        
+        #YOLO layers
 
 
             
