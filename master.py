@@ -108,7 +108,7 @@ class Master:
             thershold-maximum memory limit
         """
         X=self.image
-        for layer in self.CNN:
+        for index,layer in enumerate(self.CNN):
             #layer dictonary {type,kernel,bias,hparams}
             #offloading decisions
             kernel=kernels[layer["kernel"]]
@@ -129,11 +129,7 @@ class Master:
                 X=self.layerResult(layer,X,pos)
             elif (offDec):
                 #get the result form the server
-                if layer[l_type]=="conv":
-                    conv_dict={ "data":X,"l_type":layer[l_type],"hpara":hparam,"pos":(0,kernel.shape[3])}
-                else:
-                    conv_dict={ "data":X,"l_type":layer[l_type],"hpara":hparam}
-
+                conv_dict={ "data":X,"index":index}
                 c=client(conv_dict,self.edge["ip"],self.edge["port"])
                 c.send()
                 X=c.receive_array()
