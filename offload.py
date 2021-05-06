@@ -53,6 +53,26 @@ class Offload():
         nh,nw,c=self.outShape() 
 
         return (nh*nw,f*f*knc)
+    
+    def comOnlyOffload(self,threshold):
+        size=self.X.itemsize
+        x=self.vecShape()
+        #amount of memory 
+        mem_amount=(size*x[0]*x[1]+getsizeof(self.kernel))/(1024*1024) #vec inputsize + kernel size (=vec kernel size) mb
+        
+        #amount of arithmatic operations
+        ts=(self.amountOfComputation()/self.server_speed)
+        tn=self.amountOfComputation()/self.node_speed
+        if tn>ts:
+            print('tn '+str(tn)+' ts '+str(ts)+' mem '+str(mem_amount))
+            return True
+        elif mem_amount>self.memory_size*thershold:
+            print('tn '+str(tn)+' ts '+str(ts))
+            return True
+        else:
+            print('tn '+str(tn)+' ts '+str(ts))
+            return False
+
 
 
     def checkOffload(self,thershold):
@@ -69,13 +89,25 @@ class Offload():
         out_data=size*out_shape[0]*out_shape[1]*out_shape[2] #in bytes
         #amount of arithmatic operations
         ts=(self.amountOfComputation()/self.server_speed)+ (out_data/self.bandwidth_down) + (self.amountOfData()/self.bandwidth_up)
-        tn=self.amountOfComputation()/self.node_speed
+        tn=100*self.amountOfComputation()/self.node_speed
         if tn>ts:
+            print('server computation time '+str((self.amountOfComputation()/self.server_speed)))
+            print('node computation time '+str(tn))
+            print('upload time '+ str((self.amountOfData()/self.bandwidth_up)))
+            print('download time '+str((out_data/self.bandwidth_down)))
             return True
         elif mem_amount>self.memory_size*thershold:
+            print('server computation time '+str((self.amountOfComputation()/self.server_speed)))
+            print('node computation time '+str(tn))
+            print('upload time '+ str((self.amountOfData()/self.bandwidth_up)))
+            print('download time '+str((out_data/self.bandwidth_down)))
             return True
         else:
             print('tn '+str(tn)+' ts '+str(ts))
+            print('server computation time '+str((self.amountOfComputation()/self.server_speed)))
+            print('node computation time '+str(tn))
+            print('upload time '+ str((self.amountOfData()/self.bandwidth_up)))
+            print('download time '+str((out_data/self.bandwidth_down)))
             return False
         
 
@@ -121,3 +153,17 @@ print('X vectorized shape: '+str(out4))
 print('===========test offload===================================')
 print("Threshold value :"+str(threshold))
 print('Offload decision :'+str(f.checkOffload(threshold)))
+
+
+print('======offloading decision with channel size X=(64,64,var) K=(9,9,var,256)')
+
+channels=[1,2,4,8,16,32,64,128]
+
+for i in channels:
+    x=np.random.randn(64,64,i)
+    k=np.random.randn(3,3,i,256)
+    f_test=Offload(n_speed,s_speed,msize,x,k,hparam,bandwidth_up,bandwidth_down)
+    print("i="+str(i)+" offload decision "+str(f_test.checkOffload(threshold)))
+    print('--------------------------------------------------------------------------------')
+
+
